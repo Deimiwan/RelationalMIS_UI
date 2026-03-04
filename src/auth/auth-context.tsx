@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       isBootstrapping,
       login: async (email, password) => {
         const res = await loginApi({ email, password });
-        tokenStore.setAccessToken(res.accessToken || `dev-token-${Date.now()}`);
+        tokenStore.setAccessToken(res.accessToken);
 
         const current = await getCurrentAccess();
         setUser({
