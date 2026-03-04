@@ -1,11 +1,16 @@
 import { createContext, useEffect, useMemo, useState } from 'react';
-import { getCurrentUser, login as loginApi } from '../api/auth';
-import { ROLE_PERMISSION_MAP, type PermissionKey, type RoleKey } from '../access/permission-map';
+import { getCurrentAccess, login as loginApi } from '../api/auth';
+import type { PermissionKey } from '../access/permission-map';
 import { tokenStore } from './token-store';
 
 type AuthUser = {
+  userId: string;
   email: string;
-  role: RoleKey;
+  status: string;
+  role: {
+    roleId: string;
+    roleName: string;
+  } | null;
   permissions: PermissionKey[];
 };
 
@@ -31,11 +36,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       try {
-        const current = await getCurrentUser();
+        const current = await getCurrentAccess();
         setUser({
-          email: current.email,
-          role: current.role,
-          permissions: current.permissions ?? ROLE_PERMISSION_MAP[current.role],
+          userId: current.user.user_id,
+          email: current.user.email,
+          status: current.user.status,
+          role: current.role
+            ? { roleId: current.role.role_id, roleName: current.role.role_name }
+            : null,
+          permissions: [...current.permissions].sort(),
         });
       } finally {
         setIsBootstrapping(false);
@@ -53,13 +62,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const res = await loginApi({ email, password });
         tokenStore.setAccessToken(res.accessToken || `dev-token-${Date.now()}`);
 
-        const role: RoleKey =
-          email.includes('architect') ? 'Architect' : email.includes('user') ? 'User' : 'Manager';
-
+        const current = await getCurrentAccess();
         setUser({
-          email,
-          role,
-          permissions: ROLE_PERMISSION_MAP[role],
+          userId: current.user.user_id,
+          email: current.user.email,
+          status: current.user.status,
+          role: current.role
+            ? { roleId: current.role.role_id, roleName: current.role.role_name }
+            : null,
+          permissions: [...current.permissions].sort(),
         });
       },
       logout: () => {
