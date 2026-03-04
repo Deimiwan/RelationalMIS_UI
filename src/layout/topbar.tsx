@@ -5,7 +5,7 @@ export const Topbar = () => {
 
   return (
     <header className="topbar">
-      <div>{user ? `${user.email} (${user.role})` : 'Guest'}</div>
+      <div>{user ? `${user.email} (${user.role?.roleName ?? 'No Role'})` : 'Guest'}</div>
       <button className="btn" onClick={logout}>Logout</button>
     </header>
   );
