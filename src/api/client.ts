@@ -1,7 +1,12 @@
 import { tokenStore } from '../auth/token-store';
 
 const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
-const API_BASE_URL = viteEnv?.VITE_API_BASE_URL ?? 'http://localhost:3000';
+const configuredBaseUrl = viteEnv?.VITE_API_BASE_URL?.trim();
+const browserOrigin = typeof window === 'undefined' ? undefined : window.location.origin;
+
+const API_BASE_URL =
+  configuredBaseUrl ||
+  (viteEnv?.DEV ? 'http://localhost:3000' : browserOrigin ? `${browserOrigin}/api` : 'http://localhost:3000');
 
 export const apiRequest = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
   const token = tokenStore.getAccessToken();
