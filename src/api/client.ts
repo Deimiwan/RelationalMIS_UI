@@ -4,8 +4,17 @@ const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | und
 const configuredBaseUrl = viteEnv?.VITE_API_BASE_URL?.trim();
 const browserOrigin = typeof window === 'undefined' ? undefined : window.location.origin;
 
+const normalizeBaseUrl = (url: string): string => {
+  if (!url) return url;
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) {
+    return url.replace(/\/$/, '');
+  }
+
+  return `https://${url}`.replace(/\/$/, '');
+};
+
 const API_BASE_URL =
-  configuredBaseUrl ||
+  (configuredBaseUrl ? normalizeBaseUrl(configuredBaseUrl) : undefined) ||
   (viteEnv?.DEV ? 'http://localhost:3000' : browserOrigin ? `${browserOrigin}/api` : 'http://localhost:3000');
 
 export const apiRequest = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
